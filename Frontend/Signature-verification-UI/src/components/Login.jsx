@@ -30,12 +30,15 @@ const LoginPage = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      let response = await axios.post("/login", loginData);
+      const response = await axios.post("/login", loginData);
+  
       if (response?.data?.accesstoken) {
-        localStorage.setItem("authorization", response.data.accesstoken);
-        localStorage.setItem("user", JSON.stringify(response.data.user || {}));
-        
-        // Store credentials if "Remember Me" is checked
+        const userData = {
+          name: response.data.username || loginData.email, // ✅ use 'username' from backend
+          email: loginData.email,
+        };      
+        localStorage.setItem("user", JSON.stringify(userData)); // ✅ Save full user info
+  
         if (rememberMe) {
           localStorage.setItem("rememberedEmail", loginData.email);
           localStorage.setItem("rememberedPassword", loginData.password);
@@ -43,7 +46,7 @@ const LoginPage = () => {
           localStorage.removeItem("rememberedEmail");
           localStorage.removeItem("rememberedPassword");
         }
-
+  
         toast.success("✅ Login Successful!", { autoClose: 1000 });
         setTimeout(() => {
           navigate("/");
@@ -56,6 +59,8 @@ const LoginPage = () => {
       toast.error(error?.response?.data?.message || "Login failed", { autoClose: 1000 });
     }
   };
+  
+  
 
   return (
     <div className="flex items-center justify-center h-screen w-full px-5 sm:px-0 bg-gray-100">

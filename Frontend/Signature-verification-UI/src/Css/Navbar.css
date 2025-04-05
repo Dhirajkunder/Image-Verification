@@ -1,0 +1,73 @@
+.App {
+  text-align: center;
+  padding: 20px;
+}
+
+.open-popup-btn {
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  padding-inline: 20px;
+  border-radius: 10%;
+  border: none;
+  color: rgb(255, 255, 255);
+  background-color: rgb(17, 128, 109);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.open-popup-btn:hover {
+  background-color: rgb(9, 101, 75);
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  text-align: left;
+  width: 300px;
+}
+
+.popup-content h2 {
+  margin-top: 0;
+}
+
+.popup-content form label {
+  display: block;
+  margin: 10px 0;
+}
+
+.popup-content input {
+  width: 90%;
+  padding: 8px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.close-popup-btn {
+  margin-top: 10px;
+  padding: 5px 10px;
+  background: #f44336;
+  color: white;
+  border: none;
+  cursor: pointer;
+  margin-left: 50px;
+  border-radius: 5px;
+}
+
+.close-popup-btn:hover {
+  background: #d32f2f;
+}

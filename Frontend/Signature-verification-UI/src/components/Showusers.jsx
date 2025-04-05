@@ -4,22 +4,27 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion } from "framer-motion";
 import Navbar from "./Navbar";
+import { Edit, Trash2 } from "lucide-react"; // Import icons
 
 export default function Showusers() {
   const [users, setUsers] = useState([]);
-  const token = localStorage.getItem("authorization");
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [editedName, setEditedName] = useState("");
+  const [editedEmail, setEditedEmail] = useState("");
+  const [editedSignature, setEditedSignature] = useState(null);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        let response = await axios.get("/show");
-        setUsers(response.data.data);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
     fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      let response = await axios.get("/show");
+      setUsers(response.data.data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
 
   const handleDelete = async (userId) => {
     let response = await axios.delete(`/${userId}`);
@@ -28,9 +33,50 @@ export default function Showusers() {
         position: "top-right",
         autoClose: 1000,
       });
-      setUsers(users.filter(user => user._id !== userId));
+      setUsers(users.filter((user) => user._id !== userId));
     } else {
       toast.error(response.data.message, {
+        position: "top-right",
+        autoClose: 1000,
+      });
+    }
+  };
+
+  const handleEdit = (user) => {
+    setSelectedUser(user);
+    setEditedName(user.name);
+    setEditedEmail(user.email);
+    setEditedSignature(null);
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const formData = new FormData();
+      formData.append("name", editedName);
+      formData.append("email", editedEmail);
+      if (editedSignature) {
+        formData.append("signature", editedSignature);
+      }
+
+      let response = await axios.put(`/update/${selectedUser._id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      if (response.data.message === "User updated successfully") {
+        toast.success(response.data.message, {
+          position: "top-right",
+          autoClose: 1000,
+        });
+        fetchUsers();
+        setSelectedUser(null);
+      } else {
+        toast.error(response.data.message, {
+          position: "top-right",
+          autoClose: 1000,
+        });
+      }
+    } catch (error) {
+      toast.error("Error updating user", {
         position: "top-right",
         autoClose: 1000,
       });
@@ -41,22 +87,11 @@ export default function Showusers() {
     <>
       <Navbar />
       <div className="min-h-screen bg-gray-50 flex flex-col items-center py-8 px-4">
-        <motion.h1
-          className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6 text-center"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
+        <motion.h1 className="text-2xl md:text-3xl font-semibold text-gray-800 mb-6 text-center">
           List of Users
         </motion.h1>
 
-        {/* Responsive Table Container */}
-        <motion.div
-          className="w-full max-w-3xl md:max-w-4xl lg:max-w-7xl bg-white shadow-lg rounded-xl p-4 border border-gray-200 overflow-x-auto"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6 }}
-        >
+        <motion.div className="w-full max-w-7xl bg-white shadow-lg rounded-xl p-4 border border-gray-200 overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead className="bg-gray-100 text-gray-700">
               <tr>
@@ -72,10 +107,7 @@ export default function Showusers() {
                 users.map((user, index) => (
                   <motion.tr
                     key={user._id}
-                    className="border-b last:border-none hover:bg-gray-50 transition"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
+                    className="border-b hover:bg-gray-50 transition"
                   >
                     <td className="p-4 text-center">{index + 1}</td>
                     <td className="p-4 text-gray-800">{user.name}</td>
@@ -91,14 +123,25 @@ export default function Showusers() {
                         <p className="text-gray-400">N/A</p>
                       )}
                     </td>
-                    <td className="p-4 text-center">
+                    <td className="p-4 text-center flex gap-2 justify-center">
+                      {/* Edit Icon */}
+                      <motion.button
+                        onClick={() => handleEdit(user)}
+                        className="p-3 bg-blue-400 text-white rounded-full hover:bg-blue-600 transition"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <Edit size={18} />
+                      </motion.button>
+
+                      {/* Delete Icon */}
                       <motion.button
                         onClick={() => handleDelete(user._id)}
-                        className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition shadow"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        className="p-3 bg-red-400 text-white rounded-full hover:bg-red-600 transition"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
                       >
-                        Delete
+                        <Trash2 size={18} />
                       </motion.button>
                     </td>
                   </motion.tr>
@@ -113,6 +156,88 @@ export default function Showusers() {
             </tbody>
           </table>
         </motion.div>
+
+        {selectedUser && (
+          <motion.div
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-white p-6 rounded-2xl shadow-xl w-[90%] max-w-md relative border border-gray-200"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 120 }}
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedUser(null)}
+                className="absolute top-3 right-4 text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ✕
+              </button>
+
+              {/* Modal Title */}
+              <h2 className="text-2xl font-semibold text-gray-800 text-center mb-4">
+                Edit User Details
+              </h2>
+
+              {/* Input Fields */}
+              <div className="space-y-4">
+                <div>
+                  <label className="text-gray-700 font-medium">Name</label>
+                  <input
+                    type="text"
+                    value={editedName}
+                    onChange={(e) => setEditedName(e.target.value)}
+                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 outline-none shadow-sm transition"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-700 font-medium">Email</label>
+                  <input
+                    type="email"
+                    value={editedEmail}
+                    onChange={(e) => setEditedEmail(e.target.value)}
+                    className="w-full p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400 outline-none shadow-sm transition"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-700 font-medium">
+                    Upload Signature
+                  </label>
+                  <input
+                    type="file"
+                    onChange={(e) => setEditedSignature(e.target.files[0])}
+                    className="w-full p-2 border border-gray-300 rounded-lg cursor-pointer bg-gray-100 hover:bg-gray-200 transition"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-between mt-6">
+                <motion.button
+                  onClick={() => setSelectedUser(null)}
+                  className="px-4 py-2 rounded-lg bg-gray-400 text-white hover:bg-gray-500 transition"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Cancel
+                </motion.button>
+                <motion.button
+                  onClick={handleUpdate}
+                  className="px-5 py-2 rounded-lg bg-blue-500 text-white font-medium hover:bg-blue-600 transition"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  Update
+                </motion.button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
 
         <ToastContainer />
       </div>

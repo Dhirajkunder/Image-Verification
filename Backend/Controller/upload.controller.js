@@ -10,7 +10,9 @@ const fileupload = async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded" });
   }
+  console.log(req.user.ID);
   try {
+    
     if (mongoose.Types.ObjectId.isValid(req.user.ID)) {
       let objectId = new mongoose.Types.ObjectId(req.user.ID);
       let isuserexit = await user.findById({ _id: req.user.ID });
@@ -41,6 +43,8 @@ const fileupload = async (req, res) => {
         return res.status(200).json({ message: "user does not exist" });
       }
     } else {
+      console.log("Kya hua bhai tujhe");
+      
       return res.status(400).json({ message: "Invalid BSON id" });
     }
   } catch (error) {

@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 import {
   reg,
   getAlluser,
@@ -7,59 +8,55 @@ import {
   forgetpass,
   resetpassword,
   adminlogin,
+  updateUser, // Ensure correct import path
 } from "../Controller/user.controller.js";
 import { fileupload, verifySign } from "../Controller/upload.controller.js";
-import multer from "multer";
 import { loginChecker_verifyuser } from "../helper/jwthandler.js";
 
 const router = express.Router();
 
+// Storage configuration for user signature upload
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    return cb(null, "./images/signature");
+    return cb(null, "./images/signature"); // Ensure this folder exists
   },
   filename: function (req, file, cb) {
     return cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
-const verificationstorage = multer.diskStorage({
+// Storage configuration for signature verification
+const verificationStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    return cb(null, "./images/signature-verification");
+    return cb(null, "./images/signature-verification"); // Ensure this folder exists
   },
   filename: function (req, file, cb) {
     return cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
 
-const verification = multer({ storage: verificationstorage });
+const verification = multer({ storage: verificationStorage });
 
+// Authentication routes
 router.post("/login", login);
 router.post("/register", reg);
-router.get("/show", getAlluser);
-
-router.post("/forgetpass", forgetpass);
-
-router.patch(
-  "/signupload",
-  loginChecker_verifyuser,
-  upload.single("signature"),
-  fileupload
-);
-router.post(
-  "/verify-sign",
-  loginChecker_verifyuser,
-  verification.single("signature_verification"),
-  verifySign
-);
-
 router.post("/useradminlogin", adminlogin);
 
-router.patch("/:id", resetpassword);
-//done
-
+// User operations
+router.get("/show", getAlluser);
 router.delete("/:id", deletesingleuser);
+router.put("/update/:id", upload.single("signature"), updateUser);
+
+// Password reset routes
+router.post("/forgetpass", forgetpass);
+router.patch("/:id", resetpassword);
+
+// Signature upload & verification
+router.put("/signupload",loginChecker_verifyuser,upload.single("signature"),updateUser);
+// router.post("/signupload",loginChecker_verifyuser,updateUser);
+
+router.post("/verify-sign", loginChecker_verifyuser, verification.single("signature_verification"), verifySign);
 
 export default router;

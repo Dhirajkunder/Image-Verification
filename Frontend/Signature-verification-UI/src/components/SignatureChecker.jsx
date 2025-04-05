@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import { FaFileUpload } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { X } from "lucide-react";
-import Navbar from "../components/Navbar";
 import "react-toastify/dist/ReactToastify.css";
 
 const SignatureChecker = () => {

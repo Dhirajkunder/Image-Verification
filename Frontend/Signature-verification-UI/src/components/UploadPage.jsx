@@ -20,7 +20,9 @@ export const UploadPage = () => {
     }
 
     const token = localStorage.getItem("authToken");
+    
     if (!token) {
+      
       toast.error("No token found, please login");
       navigate("/login");
       return;
@@ -32,12 +34,14 @@ export const UploadPage = () => {
     });
 
     try {
-      let response = await axios.patch(`/signupload`, formData, {
+      let response = await axios.put("/signupload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
+          "authorization": `Bearer ${token}`,
         },
       });
+
+      console.log('response:', response)
 
       toast.success(response.data.message || "File uploaded successfully!", {
         position: "top-right",

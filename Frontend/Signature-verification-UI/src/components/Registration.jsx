@@ -22,16 +22,31 @@ export default function Registration() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      let response = await axios.post("/register", registration);
-      let message = response.data.data;
-      localStorage.setItem("authToken", response.data.token);
-      toast.success(message, { position: "top-right", autoClose: 1000 });
-      setTimeout(() => navigate("/file-upload"), 1500);
-    } catch (error) {
-      toast.error(error.response?.data?.data || "Registration failed", {
+      const response = await axios.post("/register", registration);
+      
+      const { token, id, message } = response.data;
+
+      // Save to localStorage
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("user", JSON.stringify({
+        id: id,
+        name: registration.name,
+        email: registration.email,
+      }));
+
+      toast.success(message || "Registered successfully", {
         position: "top-right",
         autoClose: 1000,
       });
+
+      setTimeout(() => navigate("/file-upload"), 1500);
+    } catch (error) {
+      const errMsg = error.response?.data?.message || "Registration failed";
+      toast.error(errMsg, {
+        position: "top-right",
+        autoClose: 1000,
+      });
+      console.error("❌ Registration Error:", errMsg);
     }
   };
 
