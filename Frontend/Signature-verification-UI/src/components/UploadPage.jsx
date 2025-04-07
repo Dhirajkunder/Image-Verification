@@ -19,7 +19,7 @@ export const UploadPage = () => {
       return;
     }
 
-    const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("authorization");
     
     if (!token) {
       
@@ -40,8 +40,6 @@ export const UploadPage = () => {
           "authorization": `Bearer ${token}`,
         },
       });
-
-      console.log('response:', response)
 
       toast.success(response.data.message || "File uploaded successfully!", {
         position: "top-right",

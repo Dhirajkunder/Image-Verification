@@ -24,12 +24,11 @@ export default function Registration() {
     try {
       const response = await axios.post("/register", registration);
       
-      const { token, id, message } = response.data;
+      const { token, message } = response.data;
 
       // Save to localStorage
-      localStorage.setItem("authToken", token);
+      localStorage.setItem("authorization", token);
       localStorage.setItem("user", JSON.stringify({
-        id: id,
         name: registration.name,
         email: registration.email,
       }));
@@ -37,6 +36,7 @@ export default function Registration() {
       toast.success(message || "Registered successfully", {
         position: "top-right",
         autoClose: 1000,
+        
       });
 
       setTimeout(() => navigate("/file-upload"), 1500);

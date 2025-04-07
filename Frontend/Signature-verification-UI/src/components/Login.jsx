@@ -31,21 +31,14 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       const response = await axios.post("/login", loginData);
+      const { token, username, message } = response.data;
   
-      if (response?.data?.accesstoken) {
-        const userData = {
-          name: response.data.username || loginData.email, // ✅ use 'username' from backend
+      if (token) {  // ✅ check for token, not accesstoken
+        localStorage.setItem("authorization", token);
+        localStorage.setItem("user", JSON.stringify({
+          name: username || loginData.email,
           email: loginData.email,
-        };      
-        localStorage.setItem("user", JSON.stringify(userData)); // ✅ Save full user info
-  
-        if (rememberMe) {
-          localStorage.setItem("rememberedEmail", loginData.email);
-          localStorage.setItem("rememberedPassword", loginData.password);
-        } else {
-          localStorage.removeItem("rememberedEmail");
-          localStorage.removeItem("rememberedPassword");
-        }
+        }));
   
         toast.success("✅ Login Successful!", { autoClose: 1000 });
         setTimeout(() => {
@@ -59,6 +52,7 @@ const LoginPage = () => {
       toast.error(error?.response?.data?.message || "Login failed", { autoClose: 1000 });
     }
   };
+  
   
   
 

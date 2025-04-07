@@ -76,6 +76,7 @@ export default function Showusers() {
         });
       }
     } catch (error) {
+      console.log('error updating user:', error)
       toast.error("Error updating user", {
         position: "top-right",
         autoClose: 1000,

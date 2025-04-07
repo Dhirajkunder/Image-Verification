@@ -43,7 +43,7 @@ const fileupload = async (req, res) => {
         return res.status(200).json({ message: "user does not exist" });
       }
     } else {
-      console.log("Kya hua bhai tujhe");
+    
       
       return res.status(400).json({ message: "Invalid BSON id" });
     }

@@ -54,7 +54,8 @@ router.post("/forgetpass", forgetpass);
 router.patch("/:id", resetpassword);
 
 // Signature upload & verification
-router.put("/signupload",loginChecker_verifyuser,upload.single("signature"),updateUser);
+router.put("/signupload", loginChecker_verifyuser, upload.single("signature"), fileupload);
+
 // router.post("/signupload",loginChecker_verifyuser,updateUser);
 
 router.post("/verify-sign", loginChecker_verifyuser, verification.single("signature_verification"), verifySign);

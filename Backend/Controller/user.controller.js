@@ -105,7 +105,7 @@ const login = async (req, res) => {
             .status(200)
             .json({
               message: "login successfully",
-              accesstoken: token,
+              token,
               userId: isUserExist._id,
               username: isUserExist.name,
               email: isUserExist.email
@@ -163,10 +163,10 @@ const deletesingleuser = async (req, res) => {
 export const updateUser = async (req, res) => {
   
   try {
-    const {
-      ID
-    } = req.user
-    console.log(ID);
+    // console.log('req.user:', req.user);
+    // const {
+    //   ID
+    // } = req?.user
     
     const {
       name,
@@ -183,7 +183,7 @@ export const updateUser = async (req, res) => {
       updateFields.signature = signature;
     }
 
-    const updatedUser = await user.findByIdAndUpdate(ID, updateFields, {
+    const updatedUser = await user.findOneAndUpdate({email}, updateFields, {
       new: true
     });
 

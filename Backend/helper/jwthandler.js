@@ -10,8 +10,10 @@ const setuser = (a) => {
 };
 
 function loginChecker_verifyuser(req, res, next) {
+  console.log('token:')
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
+  console.log(token)
   if (!token)
     return res.status(401).json({ message: "No token provided please login" });
   jwt.verify(token, process.env.SECRET, (err, user) => {
