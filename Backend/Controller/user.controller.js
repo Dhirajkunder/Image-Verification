@@ -1,11 +1,10 @@
 import user from "../model/index.js";
 import mongoose from "mongoose";
-import {
-  setuser
-} from "../helper/jwthandler.js";
+import { setuser } from "../helper/jwthandler.js";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
-
+import validator from "validator";
+import jwt from "jsonwebtoken";  // Added for JWT handling
 
 const reg = async (req, res) => {
   try {
@@ -20,8 +19,8 @@ const reg = async (req, res) => {
     }
 
     // ✅ Hash password
-    const saltround = 10;
-    const hashedPassword = await bcrypt.hash(password, saltround);
+    const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS) || 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     // ✅ Create new user
     const newUser = await user.create({
@@ -44,94 +43,75 @@ const reg = async (req, res) => {
   }
 };
 
-
 const getAlluser = async (req, res) => {
   try {
     await user
-      .find({
-        deleted: false
-      })
+      .find({ deleted: false })
       .then((re) => {
-        if (re) {
-          if (re.length > 0) {
-            return res.status(200).json({
-              data: re
-            });
-          } else {
-            return res.status(200).json({
-              data: re
-            });
-          }
+        if (re.length > 0) {
+          return res.status(200).json({ data: re });
+        } else {
+          return res.status(200).json({ data: [] });
         }
       })
       .catch((err) => {
-        if (err) {
-          return res.status(400).json({
-            data: "failed to fetch the users"
-          });
-        }
+        return res.status(400).json({ data: "Failed to fetch the users" });
       });
   } catch (error) {
-    if (error) {
-      return res.status(500).json({
-        data: "Internal server error"
-      });
-    }
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
 const login = async (req, res) => {
   try {
-    let isUserExist = await user.findOne({
-      email: req.body.email
-    });
+    const { email, password } = req.body;
+
+    // ✅ Check that email and password are strings
+    if (typeof email !== "string" || typeof password !== "string") {
+      return res.status(400).json({ message: "Invalid input type" });
+    }
+
+    // ✅ Validate email format
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ message: "Invalid email format" });
+    }
+
+    // ✅ Ensure no injection in email field
+    const safeEmail = validator.normalizeEmail(email);
+
+    // 🔒 Use safe and validated email
+    const isUserExist = await user.findOne({ email: safeEmail });
+
     if (!isUserExist) {
-      return res.json({
-        message: "email ID does not exist"
-      });
-    } else {
-      bcrypt.compare(req.body.password, isUserExist["pass"], (err, result) => {
-        if (err) {
-          console.log(err);
-          return res.status(500).json({
-            message: "error in login "
-          });
-        }
-        if (result) {
-          let token = setuser({
-            isUserExist
-          });
-          return res
-            .status(200)
-            .json({
-              message: "login successfully",
-              token,
-              userId: isUserExist._id,
-              username: isUserExist.name,
-              email: isUserExist.email
-            });
-        } else {
-          return res
-            .status(200)
-            .json({
-              message: "incorrect Email or password "
-            });
-        }
-      });
+      return res.status(404).json({ message: "Email does not exist" });
     }
+
+    // 🔐 Password comparison
+    const isMatch = await bcrypt.compare(password, isUserExist.pass);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Incorrect email or password" });
+    }
+
+    // 🎉 Token setup
+    const token = setuser({ isUserExist });
+
+    return res.status(200).json({
+      message: "Login successfully",
+      token,
+      userId: isUserExist._id,
+      username: isUserExist.name,
+      email: isUserExist.email,
+    });
+
   } catch (error) {
-    if (error) {
-      console.log(error);
-      return res.status(500).json({
-        message: "Internal server error"
-      });
-    }
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
 const deletesingleuser = async (req, res) => {
   try {
-
     if (mongoose.Types.ObjectId.isValid(req.params.id)) {
       const objectId = new mongoose.Types.ObjectId(req.params.id);
 
@@ -139,187 +119,120 @@ const deletesingleuser = async (req, res) => {
       if (isUserExist) {
         await user.findByIdAndDelete(objectId);
         return res.status(200).json({
-          message: "user deleted successfully"
+          message: "User deleted successfully",
         });
       } else {
         return res.status(404).json({
-          message: "User not found"
+          message: "User not found",
         });
       }
     } else {
       return res.status(400).json({
-        message: "Invalid user ID"
+        message: "Invalid user ID",
       });
     }
   } catch (error) {
     console.error("Error deleting user:", error);
     return res.status(500).json({
-      message: "Internal server error"
+      message: "Internal server error",
     });
   }
 };
-
 
 export const updateUser = async (req, res) => {
-  
   try {
-    // console.log('req.user:', req.user);
-    // const {
-    //   ID
-    // } = req?.user
-    
-    const {
-      name,
-      email
-    } = req.body;
-    const signature = req.file ? req.file.filename : null; // Get the uploaded file
+    const userId = req.params.id;
+    const { name, email } = req.body;
+    const signature = req.file?.filename; // safely get filename if file exists
 
-    // Prepare update object
-    let updateFields = {
-      name,
-      email
-    };
+    const updatedFields = { name, email };
     if (signature) {
-      updateFields.signature = signature;
+      updatedFields.signature = signature;
     }
 
-    const updatedUser = await user.findOneAndUpdate({email}, updateFields, {
-      new: true
-    });
+    const updatedUser = await user.findByIdAndUpdate(
+      userId,
+      { $set: updatedFields },
+      { new: true }
+    );
 
     if (!updatedUser) {
-      return res.status(404).json({
-        message: "User not found"
-      });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json({
-      message: "User updated successfully",
-      updatedUser
-    });
+    res.status(200).json({ message: "User updated successfully", updatedUser });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      message: "Internal server error"
-    });
+    console.error("🔥 Error in updateUser:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 
-
-
-
 const forgetpass = async (req, res) => {
-  let email = req.body.email;
-  await user.findOne({
-    email: email
-  }).then((re) => {
-    if (re) {
-      const transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: "gauravchindarkar45@gmail.com",
-          pass: "knmb oqoe ociz fwka",
-        },
-        secure: false, // Use this when the environment has certificate issues
-        tls: {
-          rejectUnauthorized: false, // Ignore certificate errors
-        },
-      });
+  try {
+    const { email } = req.body;
+    const foundUser = await user.findOne({ email });
 
-      const mailOptions = {
-        from: "cyberversatile22@gmail.com",
-        to: re.email,
-        subject: "reset password Link",
-        text: `http://localhost:5173/user/${re._id}`,
-      };
-      try {
-        transporter.sendMail(mailOptions);
-        return res
-          .status(200)
-          .json({
-            message: `Link sent successfully to ${re.email}`
-          });
-      } catch (error) {
-        if (error) {
-          return res.status(500).json({
-            message: "failed to send a Link"
-          });
-        }
-      }
-    } else {
-      return res.status(200).json({
-        message: "email ID does not exist"
-      });
+    if (!foundUser) {
+      return res.status(404).json({ message: "Email does not exist" });
     }
-  });
+
+    const token = jwt.sign({ id: foundUser._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
+
+    const resetLink = `http://localhost:5173/reset-password/${token}`;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.MAIL_ID,
+        pass: process.env.MAIL_PASS,
+      },
+    });
+
+    const mailOptions = {
+      from: process.env.MAIL_ID,
+      to: email,
+      subject: "Password Reset",
+      html: `<p>Click the link below to reset your password:</p>
+             <a href="${resetLink}">${resetLink}</a>`,
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    return res.status(200).json({ message: `Reset link sent to ${email}` });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 };
 
 const resetpassword = async (req, res) => {
   try {
-    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
-      const objectId = new mongoose.Types.ObjectId(req.params.id);
-      let isuserexit = await user.findOne({
-        _id: objectId,
-        deleted: false
-      });
-      if (isuserexit) {
-        const saltround = 10;
-        let password = await bcrypt.hash(req.body.pass, saltround);
-        await user
-          .findByIdAndUpdate({
-            _id: objectId,
-          }, {
-            pass: password,
-          })
-          .then((re) => {
-            if (re) {
-              return res
-                .status(200)
-                .json({
-                  message: "password updated successfully"
-                });
-            }
-          })
-          .catch((err) => {
-            if (err) {
-              return res
-                .status(500)
-                .json({
-                  message: "password updated failed"
-                });
-            }
-          });
-      } else {
-        return res.status(200).json({
-          message: "user id not found"
-        });
-      }
-    } else {
-      return res.status(400).json({
-        message: "Invalid BSON ID"
-      });
-    }
-  } catch (error) {
-    if (error) {
-      return res.status(500).json({
-        message: "Internal server error"
-      });
-    }
+    const { token } = req.params;
+    const { pass } = req.body;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const hashedPassword = await bcrypt.hash(pass, 10);
+
+    await user.findByIdAndUpdate(decoded.id, { pass: hashedPassword });
+
+    return res.status(200).json({ message: "Password reset successfully" });
+
+  } catch (err) {
+    console.error("Reset error:", err);
+    return res.status(400).json({ message: "Invalid or expired token" });
   }
 };
 
 const adminlogin = (req, res) => {
-  const {
-    name,
-    password
-  } = req.body;
+  const { name, password } = req.body;
   if (name === "admin" && password === "admin") {
     return res.status(200).json({
-      message: "login successfully"
+      message: "Login successfully",
     });
   } else {
     return res.status(200).json({
-      message: "Invalid Username and password"
+      message: "Invalid Username and password",
     });
   }
 };

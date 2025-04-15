@@ -1,10 +1,16 @@
 import mongoose from "mongoose";
-import "dotenv/config";
+import dotenv from "dotenv";
+
+// Load environment variables from .env file
+dotenv.config();
+
+const mongoURI = process.env.MONGO_URI;
+
 mongoose
-  .connect("mongodb://localhost:27017/signatureverfication") //  mongodb://mongodb:27017/  //mongodb://localhost:27017
+  .connect(mongoURI) // Add options for better compatibility
   .then(() => {
     console.log("Connected to MongoDB");
   })
   .catch((error) => {
-    console.error("Error connecting to MongoDB");
+    console.error("Error connecting to MongoDB:", error);
   });
