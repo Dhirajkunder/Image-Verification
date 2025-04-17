@@ -4,7 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { motion } from "framer-motion";
 import Navbar from "./Navbar";
-import { Edit, Trash2 } from "lucide-react"; // Import icons
+import { Edit, Trash2 } from "lucide-react";
 
 export default function Showusers() {
   const [users, setUsers] = useState([]);
