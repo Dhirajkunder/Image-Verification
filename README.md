@@ -87,15 +87,15 @@ cd Image-Verification
 
 2. **Backend Setup:**
 ```bash
-cd server
+cd Backend
 npm install
 cp .env.example .env
-npm run dev
+node --watch .\server.js
 ```
 
 3. **Frontend Setup:**
 ```bash
-cd backend
+cd  Frontend\Signature-verification-UI
 npm install
 npm run dev
 ```
