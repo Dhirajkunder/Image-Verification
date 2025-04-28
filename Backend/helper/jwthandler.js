@@ -6,19 +6,25 @@ const setuser = (a) => {
   userJWT.name = a.isUserExist.name;
   userJWT.ID = a.isUserExist._id;
   userJWT.email = a.isUserExist.email;
-  return jwt.sign(userJWT, process.env.SECRET, { expiresIn: "1h" });
+  return jwt.sign(userJWT, process.env.SECRET, {
+    expiresIn: "1h"
+  });
 };
 
 function loginChecker_verifyuser(req, res, next) {
-  console.log('token:')
+
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
-  console.log(token)
+
   if (!token)
-    return res.status(401).json({ message: "No token provided please login" });
+    return res.status(401).json({
+      message: "No token provided please login"
+    });
   jwt.verify(token, process.env.SECRET, (err, user) => {
     if (err) {
-      return res.status(403).json({ message: "Invalid token please login" });
+      return res.status(403).json({
+        message: "Invalid token please login"
+      });
     }
 
     req.user = user;
@@ -26,4 +32,7 @@ function loginChecker_verifyuser(req, res, next) {
   });
 }
 
-export { setuser, loginChecker_verifyuser };
+export {
+  setuser,
+  loginChecker_verifyuser
+};

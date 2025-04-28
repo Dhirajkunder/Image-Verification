@@ -1,115 +1,207 @@
-Signature Verification System
+# SignifySecure - Signature Verification System
 
-Overview
+A full-stack Signature Verification System using MERN (MongoDB, Express.js, React.js, Node.js) architecture, Vite for frontend setup, and a Deep Learning-based Siamese Network model in Python for signature verification. This project enables users to authenticate and verify digital signatures securely with real-time feedback.
 
-SignifySecure is a web-based application designed for verifying digital signatures using a deep learning-based Siamese network model. The system allows users to upload a genuine signature and a test signature to determine authenticity.
+---
 
-Features
+## 📅 Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [API Endpoints](#api-endpoints)
+- [Machine Learning Integration](#machine-learning-integration)
+- [Known Issues](#known-issues)
+- [Future Enhancements](#future-enhancements)
+- [Contributing](#contributing)
+- [Contributors](#contributors)
+- [License](#license)
 
-User Authentication: Login & Register functionality with session handling.
+---
 
-Role-Based Access: Admin can view a list of users; normal users can only verify signatures.
+## 📄 Overview
 
-Signature Verification: Uses a deep learning model to compare signatures.
+**SignifySecure** is a professional web application designed for verifying digital signatures. It leverages a Deep Learning model (Siamese network with CBAM) to compare and authenticate signature images.
 
-Real-Time Feedback: Displays probability score and confidence level.
+**Key functionalities include:**
+- User Authentication with role-based access control (Admin/User)
+- Image Upload and Signature Verification using ML model
+- Real-time feedback with similarity score and confidence level
 
-Tech Stack
+---
 
-Frontend: React.js (Vite), Tailwind CSS, Framer Motion
+## ✨ Features
+- **User Authentication:** Secure login and registration with hashed passwords
+- **Role-Based Access:**
+  - **Admin:** View list of registered users
+  - **User:** Access only signature verification functionality
+- **Signature Verification:** Compare uploaded signatures via a deep learning model
+- **Real-Time Feedback:** Display similarity probability and confidence classification
+- **Session Management:** JWT-based authentication with LocalStorage support
 
-Backend: Node.js, Express.js
+---
 
-Database: MongoDB
+## 🚀 Tech Stack
 
-Machine Learning: Python (PyTorch, OpenCV, PIL, NumPy, torchvision)
+**Frontend:**
+- React.js (Vite)
+- Tailwind CSS
+- Framer Motion
+- Axios
+- React Router DOM
 
-Setup Instructions
+**Backend:**
+- Node.js
+- Express.js
+- MongoDB (Mongoose)
+- Multer (file uploads)
+- Bcrypt.js (password encryption)
+- JSON Web Token (JWT)
+- Body-parser, CORS, Dotenv
 
-Prerequisites
+**Machine Learning (Python):**
+- PyTorch
+- OpenCV
+- Pillow (PIL)
+- NumPy
+- Torchvision
 
-Node.js & npm installed
+---
 
-Python (3.x) installed
+## 📚 Project Structure
 
-MongoDB running locally or on a cloud service
+```
+client/               # React frontend (Vite powered)
+  public/
+  src/
+    components/
+      Home/
+      Login/
+      Register/
+      Upload/
+    services/
+      authService.js
+      uploadService.js
+    App.jsx
+    main.jsx
+  vite.config.js
 
-Installation
+server/               # Node.js backend
+  controllers/
+    auth.controller.js
+    upload.controller.js
+  middleware/
+    auth.middleware.js
+  models/
+    user.model.js
+  ml/
+    verifier.js        # Machine Learning integration
+  routes/
+    auth.routes.js
+    upload.routes.js
+  uploads/            # Uploaded image storage
+  server.js
+  .env
 
-Setting Up a New Vite React Project
+ml_model/             # Python scripts for Signature Verification
+  verify_signature.py
+  logistic_model.pth  # Trained Siamese Network model
+```
 
-Create a new Vite React project:
+---
 
-npm create vite@latest client --template react
+## ⚙️ Getting Started
+
+### Prerequisites
+- Node.js and npm installed
+- Python 3.x installed
+- MongoDB running locally or hosted (MongoDB Atlas)
+
+### Installation
+
+1. **Clone the repository:**
+```bash
+git clone https://github.com/Dhirajkunder/Image-Verification.git
+cd Image-Verification
+```
+
+2. **Backend Setup:**
+```bash
+cd server
+npm install
+cp .env.example .env
+npm run dev
+```
+
+3. **Frontend Setup:**
+```bash
 cd client
 npm install
+npm run dev
+```
 
-Install frontend dependencies:
-
-npm install tailwindcss framer-motion axios react-router-dom
-
-
-Backend Installation
-
-Move to the server directory:
-
-cd ../server
-
-Install backend dependencies:
-
-npm install express mongoose dotenv cors body-parser jsonwebtoken bcryptjs
-
-Environment Variables
-
-Create a .env file in the server directory with:
-
-MONGO_URI=<your-mongodb-connection-string>
-JWT_SECRET=<your-jwt-secret>
-
-Running the Application
-
-Start the frontend:
-
-cd client && npm run dev
-
-Start the backend:
-
-cd ../server && npm start or node server.js 
-
-Python Signature Verification Script
-
-The verify_signature.py script is used to verify digital signatures using a Siamese neural network with CBAM (Convolutional Block Attention Module).
-
-Dependencies
-
-Install required Python libraries:
-
+4. **Machine Learning Setup:**
+```bash
+cd ml_model
 pip install torch torchvision numpy opencv-python pillow
+```
 
-How It Works
+5. **Running Python Script for Signature Verification:**
+```bash
+python verify_signature.py
+```
 
-Preprocesses the input images (grayscale conversion, noise reduction, cropping, resizing).
+> Frontend: `http://localhost:5173`  
+> Backend API: `http://localhost:5000`
 
-Passes the images through a Siamese ResNet model with CBAM.
+---
 
-Computes feature similarity and outputs a probability score.
+## 📈 Environment Variables
 
-Running the Script
+In the `server/` directory, create a `.env` file with:
+```plaintext
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_secret_key
+```
 
-python verify_signature.py 
+---
 
-JSON Input Format
+## 🔗 API Endpoints
 
-The script can also receive JSON input via stdin:
+### Auth Routes
+- `POST /api/auth/register` — Register a new user
+- `POST /api/auth/login` — Authenticate and receive JWT
 
+### Upload Routes
+- `POST /api/upload` — Upload genuine and test signatures (protected route)
+
+---
+
+## 🤖 Machine Learning Integration
+
+**`verify_signature.py`** performs signature verification with these steps:
+- **Preprocessing:** Grayscale conversion, denoising, cropping, resizing
+- **Model Inference:** Siamese ResNet model with CBAM attention
+- **Prediction:** Calculates similarity score and probability
+
+### Running the Script
+```bash
+python verify_signature.py
+```
+
+### JSON Input Format
+```json
 {
   "genuine_path": "path/to/genuine.png",
   "test_path": "path/to/test.png",
   "model_path": "logistic_model.pth"
 }
+```
 
-JSON Output Format
-
+### JSON Output Format
+```json
 {
   "similarity_score": 0.95,
   "probability": 0.92,
@@ -117,24 +209,58 @@ JSON Output Format
   "confidence": "high",
   "status": "success"
 }
+```
 
-Git Ignore File
+---
 
-Ensure you have a .gitignore file to exclude unnecessary files:
+## ⚠️ Known Issues
+- Basic error handling in frontend and backend
+- Frontend form validations need improvement
+- File size and format restrictions are minimal
+- ML model trained on limited dataset (accuracy can vary)
 
+---
 
-Contributing
+## 📊 Future Enhancements
+- Enhance ML model with larger datasets and better accuracy
+- Integrate asynchronous background verification
+- Add password recovery/reset functionality
+- Deploy backend with Docker support
+- Improve UI/UX with full responsiveness
 
-Fork the repository
+---
 
-Create a new branch (git checkout -b feature-name)
+## 🤝 Contributing
 
-Commit changes (git commit -m "Added new feature")
+We welcome contributions! Here's how you can contribute:
+1. Fork the repository
+2. Create your feature branch:
+```bash
+git checkout -b feature-name
+```
+3. Commit your changes:
+```bash
+git commit -m "Added new feature"
+```
+4. Push to your branch:
+```bash
+git push origin feature-name
+```
+5. Open a Pull Request
 
-Push to GitHub (git push origin feature-name)
+---
 
+## 👥 Contributors
 
+- 👤 [Dhiraj Kunder](https://github.com/Dhirajkunder)
 
-Contributors
+---
 
-👤 Dhiraj Kunder
+## 🌐 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+> Made with ❤️ by [Dhirajkunder](https://github.com/Dhirajkunder)
+

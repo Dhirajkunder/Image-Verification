@@ -5,7 +5,6 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 const fileupload = async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: "No file uploaded" });
