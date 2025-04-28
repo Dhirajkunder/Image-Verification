@@ -70,48 +70,6 @@ A full-stack Signature Verification System using MERN (MongoDB, Express.js, Reac
 
 ---
 
-## 📚 Project Structure
-
-```
-client/               # React frontend (Vite powered)
-  public/
-  src/
-    components/
-      Home/
-      Login/
-      Register/
-      Upload/
-    services/
-      authService.js
-      uploadService.js
-    App.jsx
-    main.jsx
-  vite.config.js
-
-server/               # Node.js backend
-  controllers/
-    auth.controller.js
-    upload.controller.js
-  middleware/
-    auth.middleware.js
-  models/
-    user.model.js
-  ml/
-    verifier.js        # Machine Learning integration
-  routes/
-    auth.routes.js
-    upload.routes.js
-  uploads/            # Uploaded image storage
-  server.js
-  .env
-
-ml_model/             # Python scripts for Signature Verification
-  verify_signature.py
-  logistic_model.pth  # Trained Siamese Network model
-```
-
----
-
 ## ⚙️ Getting Started
 
 ### Prerequisites
@@ -137,14 +95,12 @@ npm run dev
 
 3. **Frontend Setup:**
 ```bash
-cd client
+cd backend
 npm install
 npm run dev
 ```
 
 4. **Machine Learning Setup:**
-```bash
-cd ml_model
 pip install torch torchvision numpy opencv-python pillow
 ```
 
@@ -152,9 +108,6 @@ pip install torch torchvision numpy opencv-python pillow
 ```bash
 python verify_signature.py
 ```
-
-> Frontend: `http://localhost:5173`  
-> Backend API: `http://localhost:5000`
 
 ---
 
@@ -213,22 +166,6 @@ python verify_signature.py
 
 ---
 
-## ⚠️ Known Issues
-- Basic error handling in frontend and backend
-- Frontend form validations need improvement
-- File size and format restrictions are minimal
-- ML model trained on limited dataset (accuracy can vary)
-
----
-
-## 📊 Future Enhancements
-- Enhance ML model with larger datasets and better accuracy
-- Integrate asynchronous background verification
-- Add password recovery/reset functionality
-- Deploy backend with Docker support
-- Improve UI/UX with full responsiveness
-
----
 
 ## 🤝 Contributing
 
