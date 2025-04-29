@@ -5,15 +5,19 @@ import {
   getAlluser,
   deletesingleuser,
   login,
-  forgetpass,
-  resetpassword,
   adminlogin,
   updateUser, // Ensure correct import path
 } from "../Controller/user.controller.js";
 import { fileupload, verifySign } from "../Controller/upload.controller.js";
 import { loginChecker_verifyuser } from "../helper/jwthandler.js";
-
+import { forgotPassword, resetPassword } from "../Controller/user.controller.js";
 const router = express.Router();
+
+// Forgot Password - Send Reset Link
+router.post('/forgot-password', forgotPassword);
+
+// Reset Password - Set New Password
+router.post('/reset-password/:token', resetPassword);
 
 // Storage configuration for user signature upload
 const storage = multer.diskStorage({
@@ -49,15 +53,13 @@ router.get("/show", getAlluser);
 router.delete("/:id", deletesingleuser);
 router.put("/update/:id", upload.single("signature"), updateUser);
 
-// Password reset routes
-router.post("/forgetpass", forgetpass);
-router.patch("/:id", resetpassword);
+
 
 // Signature upload & verification
 router.put("/signupload", loginChecker_verifyuser, upload.single("signature"), fileupload);
 
-// router.post("/signupload",loginChecker_verifyuser,updateUser);
 
 router.post("/verify-sign", loginChecker_verifyuser, verification.single("signature_verification"), verifySign);
+
 
 export default router;

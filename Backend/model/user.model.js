@@ -6,13 +6,19 @@ const UserSchema = new mongoose.Schema(
     name: { type: String },
     email: { 
       type: String,
-      unique: true, // 🔥 ensure uniqueness
+      unique: true,
       required: true,
-      lowercase: true, // 🔥 always store as lowercase
-      trim: true, },
+      lowercase: true,
+      trim: true,
+    },
     pass: { type: String },
     deleted: { type: Boolean, default: false },
-    signature:{type: String}
+    signature: { type: String },
+
+    // 🔥 New fields for password reset
+    resetPasswordToken: String,
+    resetPasswordExpire: Date,
+    
   },
   { timestamps: true }
 );

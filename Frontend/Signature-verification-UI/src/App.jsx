@@ -8,7 +8,8 @@ import Home from "./pages/Home";
 import Aboutus from "./pages/Aboutus";
 import Newpassword from "./components/Newpassword";
 import { UploadPage } from "./components/UploadPage";
-
+import ForgotPassword from './components/ForgetPassword';
+import ResetPassword from './components/ResetPassword';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 
@@ -17,6 +18,8 @@ function App() {
     <>
       <BrowserRouter>
         <Routes>
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
           <Route path="/" element={<Home></Home>}></Route>

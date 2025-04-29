@@ -4,6 +4,8 @@ import { setuser } from "../helper/jwthandler.js";
 import nodemailer from "nodemailer";
 import bcrypt from "bcrypt";
 import validator from "validator";
+import crypto from "crypto";
+import userModel from "../model/index.js";
 import jwt from "jsonwebtoken";  // Added for JWT handling
 
 const reg = async (req, res) => {
@@ -167,60 +169,73 @@ export const updateUser = async (req, res) => {
   }
 };
 
-const forgetpass = async (req, res) => {
+
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
   try {
-    const { email } = req.body;
-    const foundUser = await user.findOne({ email });
+    const user = await userModel.findOne({ email });
+    if (!user) return res.status(404).json({ message: "No user found with that email." });
 
-    if (!foundUser) {
-      return res.status(404).json({ message: "Email does not exist" });
-    }
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
 
-    const token = jwt.sign({ id: foundUser._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 min
+    await user.save();
 
-    const resetLink = `http://localhost:5173/reset-password/${token}`;
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.MAIL_ID,
-        pass: process.env.MAIL_PASS,
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
       },
     });
 
     const mailOptions = {
-      from: process.env.MAIL_ID,
-      to: email,
-      subject: "Password Reset",
-      html: `<p>Click the link below to reset your password:</p>
-             <a href="${resetLink}">${resetLink}</a>`,
+      from: `Support <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: "Password Reset Request",
+      html: `<p>You requested a password reset.</p>
+             <p>Click <a href="${resetUrl}">here</a> to reset your password. This link expires in 10 minutes.</p>`,
     };
 
     await transporter.sendMail(mailOptions);
-
-    return res.status(200).json({ message: `Reset link sent to ${email}` });
-
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ message: "Internal server error" });
+    res.status(200).json({ message: "Reset link sent to email" });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
 
-const resetpassword = async (req, res) => {
+
+// @desc    Reset Password
+const resetPassword = async (req, res) => {
+  const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
   try {
-    const { token } = req.params;
-    const { pass } = req.body;
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const hashedPassword = await bcrypt.hash(pass, 10);
+    if (!user) return res.status(400).json({ message: 'Invalid or expired token' });
 
-    await user.findByIdAndUpdate(decoded.id, { pass: hashedPassword });
+    const { password } = req.body;
 
-    return res.status(200).json({ message: "Password reset successfully" });
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
 
-  } catch (err) {
-    console.error("Reset error:", err);
-    return res.status(400).json({ message: "Invalid or expired token" });
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    res.status(200).json({ message: 'Password reset successful' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error resetting password', error: error.message });
   }
 };
 
@@ -242,7 +257,7 @@ export {
   login,
   getAlluser,
   deletesingleuser,
-  forgetpass,
-  resetpassword,
+
+  resetPassword,
   adminlogin,
 };
