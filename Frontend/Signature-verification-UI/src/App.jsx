@@ -1,12 +1,10 @@
-import React from "react";
-
 import Login from "./components/Login";
 import Registration from "./components/Registration";
 import ForgetPassword from "./components/ForgetPassword";
 import Showusers from "./components/Showusers";
 import Home from "./pages/Home";
 import Aboutus from "./pages/Aboutus";
-import Newpassword from "./components/Newpassword";
+import Newpassword from "./components/Navbar";
 import { UploadPage } from "./components/UploadPage";
 import ForgotPassword from './components/ForgetPassword';
 import ResetPassword from './components/ResetPassword';
